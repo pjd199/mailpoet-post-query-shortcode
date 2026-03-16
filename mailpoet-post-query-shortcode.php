@@ -2,7 +2,7 @@
 /**
  * Plugin Name: Mailpoet Post Query Shortcode
  * Description: Custom Mailpoet shortcode for inserting posts into email 
- * Version: 0.0.1
+ * Version: 0.0.2
  * Author: Pete Dibdin
  * License: MIT
  * Plugin URI: https://github.com/pjd199/mailpoet-post-query-shortcode
@@ -20,6 +20,7 @@ function mailpoet_custom_post_query($shortcode, $newsletter, $subscriber, $queue
 	$empty      = isset($arguments['empty']) ? esc_html($arguments['empty']) : "";
 	$hr         = isset($arguments['hr']) ? filter_var($arguments['hr'], FILTER_VALIDATE_BOOLEAN) : false;
 	$show_image = isset($arguments['image']) ? filter_var($arguments['image'], FILTER_VALIDATE_BOOLEAN) : true;
+    $use_content = isset($arguments['content']) ? filter_var($arguments['content'], FILTER_VALIDATE_BOOLEAN) : false;
     $post_limit = isset($arguments['limit']) ? intval($arguments['limit']) : 12;    
 	$read_more  = isset($arguments['read_more']) ? esc_html($arguments['read_more']) : "Read More";
 	$is_event_query  = in_array('events', array_map('trim', $cat_arg));
@@ -40,9 +41,9 @@ function mailpoet_custom_post_query($shortcode, $newsletter, $subscriber, $queue
     $query = new WP_Query($args);
     
     if (!$query->have_posts()) return $empty;
-    
-    $output = '<table width="100%" border="0" cellpadding="0" cellspacing="0" role="presentation" align="center" style="width:100%; max-width:600px; margin:0 auto; border-collapse: separate;">';
-    
+
+    $output = '<table width="100%" style="width:100%; max-width:600px">';
+
     while ($query->have_posts()) {
         $query->the_post();
         $permalink = get_permalink();
@@ -59,8 +60,7 @@ function mailpoet_custom_post_query($shortcode, $newsletter, $subscriber, $queue
             }
         }
         
-        //$text = $has_short_tag ? get_the_excerpt() : apply_filters('the_content', get_the_content());		
-        $text = $has_short_tag ? get_the_excerpt() : get_the_content();
+        $text = $use_content ? get_the_content() : get_the_excerpt();
         $text = trim($text);
 		
         $formatted_date = '';
@@ -72,40 +72,65 @@ function mailpoet_custom_post_query($shortcode, $newsletter, $subscriber, $queue
                 $formatted_date = date('jS F Y', $timestamp) . ' ' . $time_part;
             }
         }
-        
-        $output .= '<tr><td style="padding-bottom:30px;">
-            <table width="100%" border="0" cellpadding="0" cellspacing="0" role="presentation" style="background-color:#ffffff; border-collapse:collapse; mso-table-lspace:0pt; mso-table-rspace:0pt;">';
-                
-                if ($show_image && $thumbnail) {
-                    $output .= '<tr>
-                        <td valign="top" align="left" style="padding: 0; margin: 0; line-height: 10px; font-size: 10px;">
-                            <a href="'.esc_url($permalink).'" target="_blank" style="display: block; border: 0; text-decoration: none;">
-                                <img src="'.esc_url($thumbnail).'" width="600" border="0" style="display:block; width:100%; height:auto; border:0; outline:none;">
+
+        $output .= '
+        <tr>
+            <td style="padding-bottom:30px;">
+                <table style="width="100%;">';
+
+        if ($show_image && $thumbnail) {
+            $output .= '                
+                    <tr>
+                        <td>
+                            <a href="'.esc_url($permalink).'" target="_blank">
+                                <img src="'.esc_url($thumbnail).'" width="600" style="width:100%">
                             </a>
                         </td>
                     </tr>';
-                }
-
-                $output .= '<tr><td style="padding:20px; font-family:Arial, sans-serif; mso-line-height-rule: exactly;">
-                    <a href="'.esc_url($permalink).'" style="text-decoration:none; color:#333333;"><span style="font-size:22px; font-weight:bold; line-height: 28px;">'.get_the_title().'</span></a>';
+        }
+        $output .= '
+                    <tr>
+                        <td style="padding:20px; font-family:Arial, sans-serif">
+                            <a href="'.esc_url($permalink).'" style="text-decoration:none; color:#333333;">
+                                <span style="font-size:22px; font-weight:bold; line-height: 28px;">'.get_the_title().'</span>
+                            </a>';
                 
-                if ($is_event_query && !empty($formatted_date)) {
-                   $output .= '<div style="line-height:8px; font-size:8px;">&nbsp;</div><span style="font-size:14px; color:#777777;">'.esc_html($formatted_date).'</span>';
-                }
+        if ($is_event_query && !empty($formatted_date)) {
+            $output .= '
+                            <div style="line-height:8px; font-size:8px;">&nbsp;</div>
+                            <span style="font-size:14px; color:#777777;">'.esc_html($formatted_date).'</span>';
+        }
+        $output .= '
+                            <div style="line-height:15px; font-size:15px;">&nbsp;</div>
+                            <div style="font-size:16px; line-height:24px;">'.$text.'</div>';
 
-                $output .= '<div style="line-height:15px; font-size:15px;">&nbsp;</div>
-                    <div style="font-size:16px; line-height:24px; color:#444444; text-align:left;">'.$text.'</div>';
-				if (!empty($read_more)) {
-    		        //$output .= '<div style="line-height: 5px; font-size: 5px;">&nbsp;</div>';    
-                    $output .= '<div style="text-align: right; width: 100%;"><a href="' . esc_url($permalink) . '" target="_blank" style="color: #0073aa; text-decoration: underline; font-size: 16px; font-weight: bold;"><span>'.$read_more.'</span></a></div>';
-				}
-                $output .= '</td></tr></table></td></tr>';
-		        if ($hr) {
-                    $output .= '<tr><td style="padding: 0 0 30px 0;"><hr style="border: 0; border-top: 2px solid #eeeeee; margin: 0;"></td></tr>';
-				}
+        if (!empty($read_more)) {
+            $output .= '
+                            <div style="text-align: right; width: 100%;">
+                                <a href="'.esc_url($permalink).'" target="_blank" style="color: #0073aa; text-decoration: underline; font-size: 16px; font-weight: bold;">
+                                    <span>'.$read_more.'</span>
+                                </a>
+                            </div>';
+        }
+        $output .= '
+                        </td>
+                    </tr>
+                </table>
+            </td>
+        </tr>';
+        if ($hr) {
+            $output .= '
+        <tr>
+            <td style="padding: 0 0 30px 0;">
+                <hr style="border: 0; border-top: 2px solid #eeeeee; margin: 0;">
+            </td>
+        </tr>';
+        }
     }
     wp_reset_postdata();
-    return $output . '</table>';
+    $output .= '</table>';
+    
+    return $output;
 }
 
 add_filter('mailpoet_newsletter_shortcode', 'mailpoet_custom_post_list', 10, 6);
