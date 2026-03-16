@@ -2,7 +2,7 @@
 /**
  * Plugin Name: Mailpoet Post Query Shortcode
  * Description: Custom Mailpoet shortcode for inserting posts into email 
- * Version: 0.0.2
+ * Version: 0.0.3
  * Author: Pete Dibdin
  * License: MIT
  * Plugin URI: https://github.com/pjd199/mailpoet-post-query-shortcode
@@ -20,10 +20,10 @@ function mailpoet_custom_post_query($shortcode, $newsletter, $subscriber, $queue
 	$empty      = isset($arguments['empty']) ? esc_html($arguments['empty']) : "";
 	$hr         = isset($arguments['hr']) ? filter_var($arguments['hr'], FILTER_VALIDATE_BOOLEAN) : false;
 	$show_image = isset($arguments['image']) ? filter_var($arguments['image'], FILTER_VALIDATE_BOOLEAN) : true;
-    $use_content = isset($arguments['content']) ? filter_var($arguments['content'], FILTER_VALIDATE_BOOLEAN) : false;
+    $use_content= isset($arguments['content']) ? filter_var($arguments['content'], FILTER_VALIDATE_BOOLEAN) : false;
     $post_limit = isset($arguments['limit']) ? intval($arguments['limit']) : 12;    
-	$read_more  = isset($arguments['read_more']) ? esc_html($arguments['read_more']) : "Read More";
-	$is_event_query  = in_array('events', array_map('trim', $cat_arg));
+	$read_more  = isset($arguments['more']) ? esc_html($arguments['more']) : "Read More";
+    $is_event_query = isset($arguments['event']) ? filter_var($arguments['event'], FILTER_VALIDATE_BOOLEAN) : false;
 
     $args = ['post_type' => 'post', 'posts_per_page' => $post_limit, 'post_status' => 'publish'];
     if ($is_event_query) { 
@@ -145,7 +145,7 @@ function mailpoet_custom_post_list($shortcode, $newsletter, $subscriber, $queue,
 	$zigzag	    = isset($arguments['zigzag']) ? filter_var($arguments['zigzag'], FILTER_VALIDATE_BOOLEAN) : true;
     $post_limit = isset($arguments['limit']) ? intval($arguments['limit']) : 12;
 	$read_more  = isset($arguments['read_more']) ? esc_html($arguments['read_more']) : "Read More";
-	$is_event_query  = in_array('events', array_map('trim', $cat_arg));
+	$is_event_query = isset($arguments['event']) ? filter_var($arguments['event'], FILTER_VALIDATE_BOOLEAN) : false;
 
     $args = ['post_type' => 'post', 'posts_per_page' => $post_limit, 'post_status' => 'publish'];
     if ($is_event_query) { 
@@ -197,107 +197,126 @@ function mailpoet_custom_post_list($shortcode, $newsletter, $subscriber, $queue,
 		if (!$zigzag || $query->current_post % 2 == 0) {
 			/* Image Left, Text Right */
 			$output .= '
-	<table>
-	     <tr>
-          <td style="font-size:0;" align="left" valign="top">
-               <!--[if (gte mso 9)|(IE)]>
-               <table cellpadding="0" cellspacing="0" border="0" role="presentation" style="width: 100%;">
-               <tr>
-               <td valign="top" style="width: 300px;">
-               <![endif]-->
-                    <div style="display:inline-block;vertical-align:top;">
-                          <table cellpadding="0" cellspacing="0" border="0" role="presentation" style="width: 300px;">
+<table>
+    <tr>
+        <td style="font-size:0;" align="left" valign="top">
+<!--[if (gte mso 9)|(IE)]>
+            <table cellpadding="0" cellspacing="0" border="0" role="presentation" style="width: 100%;">
+                <tr>
+                    <td valign="top" style="width: 300px;">
+<![endif]-->
+                        <div style="display:inline-block;vertical-align:top;">
+                            <table cellpadding="0" cellspacing="0" border="0" role="presentation" style="width: 300px;">
                                 <tr>
-									<td align="left" valign="top" style="padding: 0px; margin: 0px;">
-                                            <a href="'.esc_url($permalink).'" target="_blank" style="display: block; border: 0; text-decoration: none;">
-												<img src="'.esc_url($thumbnail).'" width="3000" alt="" style="height:auto;width:100%;" />
-											  </a>
-                                      </td>
+                                    <td align="left" valign="top" style="padding: 0px; margin: 0px;">
+                                        <a href="'.esc_url($permalink).'" target="_blank" style="display: block; border: 0; text-decoration: none;">
+                                            <img src="'.esc_url($thumbnail).'" width="3000" alt="" style="height:auto;width:100%;" />
+                                        </a>
+                                    </td>
                                 </tr>
-                          </table>
-                    </div>
-               <!--[if (gte mso 9)|(IE)]>
-               </td><td valign="top" style="width:300px;">
-               <![endif]-->
-                    <div style="display:inline-block;vertical-align:top;">
-                          <table cellpadding="0" cellspacing="0" border="0" role="presentation" style="width:300px;">
+                            </table>
+                        </div>
+<!--[if (gte mso 9)|(IE)]>
+                    </td>
+                    <td valign="top" style="width:300px;">
+<![endif]-->
+                        <div style="display:inline-block;vertical-align:top;">
+                            <table cellpadding="0" cellspacing="0" border="0" role="presentation" style="width:300px;">
                                 <tr>
-                                      <td align="left" valign="top" style="padding-left:20px; padding-right:20px">
-                                            <a href="'.esc_url($permalink).'" style="text-decoration:none; color:#333333;"><span style="font-size:22px; font-weight:bold; line-height: 28px;">'.get_the_title().'</span></a>
-									<div style="line-height:15px; font-size:15px;">&nbsp;</div>
-                    <div style="font-size:16px; line-height:24px; color:#444444; text-align:left;">'.$text.'</div>
-                                            <div style="text-align: right; width: 100%;"><a href="' . esc_url($permalink) . '" target="_blank" style="color: #0073aa; text-decoration: underline; font-size: 16px; font-weight: bold;"><span>'.$read_more.'</span></a></div>
-                                      </td>
+                                    <td align="left" valign="top" style="padding-left:20px; padding-right:20px">
+                                        <a href="'.esc_url($permalink).'" style="text-decoration:none; color:#333333;">
+                                            <span style="font-size:22px; font-weight:bold; line-height: 28px;">'.get_the_title().'</span>
+                                        </a>';
+            
+                if ($is_event_query && !empty($formatted_date)) {
+                    $output .= '
+                                        <div style="line-height:8px; font-size:8px;">&nbsp;</div>
+                                        <span style="font-size:14px; color:#777777;">'.esc_html($formatted_date).'</span>';
+                }
 
+                $output .= '
+                                        <div style="line-height:15px; font-size:15px;">&nbsp;</div>
+                                        <div style="font-size:16px; line-height:24px; color:#444444; text-align:left;">'.$text.'</div>
+                                        <div style="text-align: right; width: 100%;"><a href="' . esc_url($permalink) . '" target="_blank" style="color: #0073aa; text-decoration: underline; font-size: 16px; font-weight: bold;"><span>'.$read_more.'</span></a></div>
+                                    </td>
                                 </tr>
-                          </table>
-                    </div>
-               <!--[if (gte mso 9)|(IE)]>
-               </td>
-               </tr>
-               </table>
-               <![endif]-->
-          </td>
-     </tr>
-  </table>
+                            </table>
+                        </div>
+<!--[if (gte mso 9)|(IE)]>
+                    </td>
+                </tr>
+        </table>
+<![endif]-->
+        </td>
+    </tr>
+</table>
   ';
 		} else {
 		/* Text Left, Image Right */
  	$output .= '
-  	<table>
-	     <tr>
-          <td style="font-size:0;" align="left" valign="top" dir="rtl">
-               <!--[if (gte mso 9)|(IE)]>
-               <table cellpadding="0" cellspacing="0" border="0" role="presentation" style="width: 100%;">
-               <tr>
-               <td valign="top" style="width: 300px;">
-               <![endif]-->
-                    <div style="display:inline-block;vertical-align:top;">
-                          <table cellpadding="0" cellspacing="0" border="0" role="presentation" style="width: 300px;" dir=”ltr”>
+<table>
+    <tr>
+        <td style="font-size:0;" align="left" valign="top" dir="rtl">
+<!--[if (gte mso 9)|(IE)]>
+            <table cellpadding="0" cellspacing="0" border="0" role="presentation" style="width: 100%;">
+                <tr>
+                    <td valign="top" style="width: 300px;">
+<![endif]-->
+                        <div style="display:inline-block;vertical-align:top;">
+                            <table cellpadding="0" cellspacing="0" border="0" role="presentation" style="width: 300px;" dir=”ltr”>
                                 <tr>
-                                     <td align="left" valign="top" style="padding-left: 10px;">
-                                            <a href="'.esc_url($permalink).'" target="_blank" style="display: block; border: 0; text-decoration: none;">
-												<img src="'.esc_url($thumbnail).'" width="290" alt="" style="height:auto;max-width:100%;" />
-											  </a>
-                                      </td> 
+                                    <td align="left" valign="top" style="padding-left: 10px;">
+                                        <a href="'.esc_url($permalink).'" target="_blank" style="display: block; border: 0; text-decoration: none;">
+                                            <img src="'.esc_url($thumbnail).'" width="290" alt="" style="height:auto;max-width:100%;" />
+                                        </a>
+                                    </td> 
                                 </tr>
-                          </table>
-                    </div>
-               <!--[if (gte mso 9)|(IE)]>
-               </td><td valign="top" style="width:300px;">
-               <![endif]-->
-                    <div style="display:inline-block;vertical-align:top;">
-                          <table cellpadding="0" cellspacing="0" border="0" role="presentation" style="width:300px;" dir=”ltr”>
+                            </table>
+                        </div>
+<!--[if (gte mso 9)|(IE)]>
+                    </td>
+                    <td valign="top" style="width:300px;">
+<![endif]-->
+                        <div style="display:inline-block;vertical-align:top;">
+                            <table cellpadding="0" cellspacing="0" border="0" role="presentation" style="width:300px;" dir=”ltr”>
                                 <tr>
-									<td align="left" valign="top">
-									<a href="'.esc_url($permalink).'" style="text-decoration:none; color:#333333;"><span style="font-size:22px; font-weight:bold; line-height: 28px;">'.get_the_title().'</span></a>
-									<div style="line-height:15px; font-size:15px;">&nbsp;</div>
-                    <div style="font-size:16px; line-height:24px; color:#444444; text-align:left;">'.$text.'</div>
-                                            <div style="text-align: right; width: 100%;"><a href="' . esc_url($permalink) . '" target="_blank" style="color: #0073aa; text-decoration: underline; font-size: 16px; font-weight: bold;"><span>'.$read_more.'</span></a></div>
-                                      </td>
-                                      
+                                    <td align="left" valign="top">
+                                        <a href="'.esc_url($permalink).'" style="text-decoration:none; color:#333333;">
+                                            <span style="font-size:22px; font-weight:bold; line-height: 28px;">'.get_the_title().'</span>
+                                        </a>';
+                if ($is_event_query && !empty($formatted_date)) {
+                    $output .= '
+                                        <div style="line-height:8px; font-size:8px;">&nbsp;</div>
+                                        <span style="font-size:14px; color:#777777;">'.esc_html($formatted_date).'</span>';
+                }
+
+                $output .= '
+                                        <div style="line-height:15px; font-size:15px;">&nbsp;</div>
+                                        <div style="font-size:16px; line-height:24px; color:#444444; text-align:left;">'.$text.'</div>
+                                        <div style="text-align: right; width: 100%;"><a href="' . esc_url($permalink) . '" target="_blank" style="color: #0073aa; text-decoration: underline; font-size: 16px; font-weight: bold;"><span>'.$read_more.'</span></a></div>
+                                    </td>
                                 </tr>
-                          </table>
-                    </div>
-               <!--[if (gte mso 9)|(IE)]>
-               </td>
-               </tr>
-               </table>
-               <![endif]-->
-          </td>
-     </tr>
-  </table>
+                            </table>
+                        </div>
+<!--[if (gte mso 9)|(IE)]>
+                    </td>
+                </tr>
+            </table>
+<![endif]-->
+        </td>
+    </tr>
+</table>
 ';
 		}
 		
 		$output .= '
-			<table>
-				<tr>
-					<td style="width: 600px;">
-						<hr>
-					</td>
-				<tr>
-			</table>';
+<table>
+    <tr>
+        <td style="width: 600px;">
+            <hr>
+        </td>
+    <tr>
+</table>';
 	}
     wp_reset_postdata();
 	
@@ -315,7 +334,7 @@ function mailpoet_custom_post_grid($shortcode, $newsletter, $subscriber, $queue,
     $cat_arg    = isset($arguments['categories']) ? explode(',', $arguments['categories']) : [];
     $post_limit = isset($arguments['limit']) ? intval($arguments['limit']) : 12;
 	$empty      = isset($arguments['empty']) ? esc_html($arguments['empty']) : "";
-    $is_event_query = in_array('events', array_map('trim', $cat_arg));
+    $is_event_query = isset($arguments['event']) ? filter_var($arguments['event'], FILTER_VALIDATE_BOOLEAN) : false;
 
     $args = ['post_type' => 'post', 'posts_per_page' => $post_limit];
     if ($is_event_query) {
