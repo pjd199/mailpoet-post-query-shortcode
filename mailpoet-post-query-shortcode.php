@@ -2,7 +2,7 @@
 /**
  * Plugin Name: Mailpoet Post Query Shortcode
  * Description: Custom Mailpoet shortcode for inserting posts into email 
- * Version: 0.0.3
+ * Version: 0.0.4
  * Author: Pete Dibdin
  * License: MIT
  * Plugin URI: https://github.com/pjd199/mailpoet-post-query-shortcode
