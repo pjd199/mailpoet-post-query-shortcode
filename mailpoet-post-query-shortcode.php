@@ -1,0 +1,386 @@
+<?php
+/**
+ * Plugin Name: Mailpoet Post Query Shortcode
+ * Description: Custom Mailpoet shortcode for inserting posts into email 
+ * Version: 0.0.1
+ * Author: Pete Dibdin
+ * License: MIT
+ * Plugin URI: https://github.com/pjd199/mailpoet-post-query-shortcode
+ */
+
+if (!defined('ABSPATH')) exit;
+
+add_filter('mailpoet_newsletter_shortcode', 'mailpoet_custom_post_query', 10, 6);
+
+function mailpoet_custom_post_query($shortcode, $newsletter, $subscriber, $queue, $newsletter_body, $arguments) {
+    if (strpos($shortcode, '[custom:post_query') !== 0) return $shortcode;
+
+    $tags_arg   = isset($arguments['tags']) ? explode(',', $arguments['tags']) : [];
+    $cat_arg    = isset($arguments['categories']) ? explode(',', $arguments['categories']) : [];
+	$empty      = isset($arguments['empty']) ? esc_html($arguments['empty']) : "";
+	$hr         = isset($arguments['hr']) ? filter_var($arguments['hr'], FILTER_VALIDATE_BOOLEAN) : false;
+	$show_image = isset($arguments['image']) ? filter_var($arguments['image'], FILTER_VALIDATE_BOOLEAN) : true;
+    $post_limit = isset($arguments['limit']) ? intval($arguments['limit']) : 12;    
+	$read_more  = isset($arguments['read_more']) ? esc_html($arguments['read_more']) : "Read More";
+	$is_event_query  = in_array('events', array_map('trim', $cat_arg));
+
+    $args = ['post_type' => 'post', 'posts_per_page' => $post_limit, 'post_status' => 'publish'];
+    if ($is_event_query) { 
+        $args['meta_key'] = 'event_start'; 
+        $args['orderby'] = 'meta_value'; 
+        $args['order'] = 'ASC'; 
+    } else { 
+        $args['orderby'] = 'date'; 
+        $args['order'] = 'DESC'; 
+    }
+
+    if (!empty($tags_arg)) $args['tag_slug__in'] = array_map('trim', $tags_arg);
+    if (!empty($cat_arg)) $args['category_name'] = implode(',', array_map('trim', $cat_arg));
+
+    $query = new WP_Query($args);
+    
+    if (!$query->have_posts()) return $empty;
+    
+    $output = '<table width="100%" border="0" cellpadding="0" cellspacing="0" role="presentation" align="center" style="width:100%; max-width:600px; margin:0 auto; border-collapse: separate;">';
+    
+    while ($query->have_posts()) {
+        $query->the_post();
+        $permalink = get_permalink();
+        $thumbnail = get_the_post_thumbnail_url(get_the_ID(), 'medium_large');
+        
+        $post_tags = get_the_tags();
+        $has_short_tag = false;
+        if ($post_tags) {
+            foreach ($post_tags as $tag) {
+                if (str_ends_with($tag->slug, '-short')) {
+                    $has_short_tag = true;
+                    break;
+                }
+            }
+        }
+        
+        //$text = $has_short_tag ? get_the_excerpt() : apply_filters('the_content', get_the_content());		
+        $text = $has_short_tag ? get_the_excerpt() : get_the_content();
+        $text = trim($text);
+		
+        $formatted_date = '';
+        if ($is_event_query) {
+            $event_raw = get_field('event_start');
+            if ($event_raw) {
+                $timestamp = strtotime($event_raw);
+                $time_part = (date('i', $timestamp) !== '00') ? date('g:ia', $timestamp) : date('ga', $timestamp);
+                $formatted_date = date('jS F Y', $timestamp) . ' ' . $time_part;
+            }
+        }
+        
+        $output .= '<tr><td style="padding-bottom:30px;">
+            <table width="100%" border="0" cellpadding="0" cellspacing="0" role="presentation" style="background-color:#ffffff; border-collapse:collapse; mso-table-lspace:0pt; mso-table-rspace:0pt;">';
+                
+                if ($show_image && $thumbnail) {
+                    $output .= '<tr>
+                        <td valign="top" align="left" style="padding: 0; margin: 0; line-height: 10px; font-size: 10px;">
+                            <a href="'.esc_url($permalink).'" target="_blank" style="display: block; border: 0; text-decoration: none;">
+                                <img src="'.esc_url($thumbnail).'" width="600" border="0" style="display:block; width:100%; height:auto; border:0; outline:none;">
+                            </a>
+                        </td>
+                    </tr>';
+                }
+
+                $output .= '<tr><td style="padding:20px; font-family:Arial, sans-serif; mso-line-height-rule: exactly;">
+                    <a href="'.esc_url($permalink).'" style="text-decoration:none; color:#333333;"><span style="font-size:22px; font-weight:bold; line-height: 28px;">'.get_the_title().'</span></a>';
+                
+                if ($is_event_query && !empty($formatted_date)) {
+                   $output .= '<div style="line-height:8px; font-size:8px;">&nbsp;</div><span style="font-size:14px; color:#777777;">'.esc_html($formatted_date).'</span>';
+                }
+
+                $output .= '<div style="line-height:15px; font-size:15px;">&nbsp;</div>
+                    <div style="font-size:16px; line-height:24px; color:#444444; text-align:left;">'.$text.'</div>';
+				if (!empty($read_more)) {
+    		        //$output .= '<div style="line-height: 5px; font-size: 5px;">&nbsp;</div>';    
+                    $output .= '<div style="text-align: right; width: 100%;"><a href="' . esc_url($permalink) . '" target="_blank" style="color: #0073aa; text-decoration: underline; font-size: 16px; font-weight: bold;"><span>'.$read_more.'</span></a></div>';
+				}
+                $output .= '</td></tr></table></td></tr>';
+		        if ($hr) {
+                    $output .= '<tr><td style="padding: 0 0 30px 0;"><hr style="border: 0; border-top: 2px solid #eeeeee; margin: 0;"></td></tr>';
+				}
+    }
+    wp_reset_postdata();
+    return $output . '</table>';
+}
+
+add_filter('mailpoet_newsletter_shortcode', 'mailpoet_custom_post_list', 10, 6);
+
+function mailpoet_custom_post_list($shortcode, $newsletter, $subscriber, $queue, $newsletter_body, $arguments) {
+    if (strpos($shortcode, '[custom:post_list') !== 0) return $shortcode;
+	
+    $tags_arg   = isset($arguments['tags']) ? explode(',', $arguments['tags']) : [];
+    $cat_arg    = isset($arguments['categories']) ? explode(',', $arguments['categories']) : [];
+	$empty      = isset($arguments['empty']) ? esc_html($arguments['empty']) : "";
+	$show_image = isset($arguments['image']) ? filter_var($arguments['image'], FILTER_VALIDATE_BOOLEAN) : true;
+	$zigzag	    = isset($arguments['zigzag']) ? filter_var($arguments['zigzag'], FILTER_VALIDATE_BOOLEAN) : true;
+    $post_limit = isset($arguments['limit']) ? intval($arguments['limit']) : 12;
+	$read_more  = isset($arguments['read_more']) ? esc_html($arguments['read_more']) : "Read More";
+	$is_event_query  = in_array('events', array_map('trim', $cat_arg));
+
+    $args = ['post_type' => 'post', 'posts_per_page' => $post_limit, 'post_status' => 'publish'];
+    if ($is_event_query) { 
+        $args['meta_key'] = 'event_start'; 
+        $args['orderby'] = 'meta_value'; 
+        $args['order'] = 'ASC'; 
+    } else { 
+        $args['orderby'] = 'date'; 
+        $args['order'] = 'DESC'; 
+    }
+
+    if (!empty($tags_arg)) $args['tag_slug__in'] = array_map('trim', $tags_arg);
+    if (!empty($cat_arg)) $args['category_name'] = implode(',', array_map('trim', $cat_arg));
+
+    $query = new WP_Query($args);
+    
+    if (!$query->have_posts()) return $empty;    
+
+	$output = '';
+    while ($query->have_posts()) {
+        $query->the_post();
+        $permalink = get_permalink();
+        $thumbnail = get_the_post_thumbnail_url(get_the_ID(), 'medium');
+        
+        $post_tags = get_the_tags();
+        $has_short_tag = false;
+        if ($post_tags) {
+            foreach ($post_tags as $tag) {
+                if (str_ends_with($tag->slug, '-short')) {
+                    $has_short_tag = true;
+                    break;
+                }
+            }
+        }
+        
+        $text = $has_short_tag ? get_the_excerpt() : get_the_content();
+        $text = trim($text);
+		
+        $formatted_date = '';
+        if ($is_event_query) {
+            $event_raw = get_field('event_start');
+            if ($event_raw) {
+                $timestamp = strtotime($event_raw);
+                $time_part = (date('i', $timestamp) !== '00') ? date('g:ia', $timestamp) : date('ga', $timestamp);
+                $formatted_date = date('jS F Y', $timestamp) . ' ' . $time_part;
+            }
+        }
+
+		if (!$zigzag || $query->current_post % 2 == 0) {
+			/* Image Left, Text Right */
+			$output .= '
+	<table>
+	     <tr>
+          <td style="font-size:0;" align="left" valign="top">
+               <!--[if (gte mso 9)|(IE)]>
+               <table cellpadding="0" cellspacing="0" border="0" role="presentation" style="width: 100%;">
+               <tr>
+               <td valign="top" style="width: 300px;">
+               <![endif]-->
+                    <div style="display:inline-block;vertical-align:top;">
+                          <table cellpadding="0" cellspacing="0" border="0" role="presentation" style="width: 300px;">
+                                <tr>
+									<td align="left" valign="top" style="padding: 0px; margin: 0px;">
+                                            <a href="'.esc_url($permalink).'" target="_blank" style="display: block; border: 0; text-decoration: none;">
+												<img src="'.esc_url($thumbnail).'" width="3000" alt="" style="height:auto;width:100%;" />
+											  </a>
+                                      </td>
+                                </tr>
+                          </table>
+                    </div>
+               <!--[if (gte mso 9)|(IE)]>
+               </td><td valign="top" style="width:300px;">
+               <![endif]-->
+                    <div style="display:inline-block;vertical-align:top;">
+                          <table cellpadding="0" cellspacing="0" border="0" role="presentation" style="width:300px;">
+                                <tr>
+                                      <td align="left" valign="top" style="padding-left:20px; padding-right:20px">
+                                            <a href="'.esc_url($permalink).'" style="text-decoration:none; color:#333333;"><span style="font-size:22px; font-weight:bold; line-height: 28px;">'.get_the_title().'</span></a>
+									<div style="line-height:15px; font-size:15px;">&nbsp;</div>
+                    <div style="font-size:16px; line-height:24px; color:#444444; text-align:left;">'.$text.'</div>
+                                            <div style="text-align: right; width: 100%;"><a href="' . esc_url($permalink) . '" target="_blank" style="color: #0073aa; text-decoration: underline; font-size: 16px; font-weight: bold;"><span>'.$read_more.'</span></a></div>
+                                      </td>
+
+                                </tr>
+                          </table>
+                    </div>
+               <!--[if (gte mso 9)|(IE)]>
+               </td>
+               </tr>
+               </table>
+               <![endif]-->
+          </td>
+     </tr>
+  </table>
+  ';
+		} else {
+		/* Text Left, Image Right */
+ 	$output .= '
+  	<table>
+	     <tr>
+          <td style="font-size:0;" align="left" valign="top" dir="rtl">
+               <!--[if (gte mso 9)|(IE)]>
+               <table cellpadding="0" cellspacing="0" border="0" role="presentation" style="width: 100%;">
+               <tr>
+               <td valign="top" style="width: 300px;">
+               <![endif]-->
+                    <div style="display:inline-block;vertical-align:top;">
+                          <table cellpadding="0" cellspacing="0" border="0" role="presentation" style="width: 300px;" dir=”ltr”>
+                                <tr>
+                                     <td align="left" valign="top" style="padding-left: 10px;">
+                                            <a href="'.esc_url($permalink).'" target="_blank" style="display: block; border: 0; text-decoration: none;">
+												<img src="'.esc_url($thumbnail).'" width="290" alt="" style="height:auto;max-width:100%;" />
+											  </a>
+                                      </td> 
+                                </tr>
+                          </table>
+                    </div>
+               <!--[if (gte mso 9)|(IE)]>
+               </td><td valign="top" style="width:300px;">
+               <![endif]-->
+                    <div style="display:inline-block;vertical-align:top;">
+                          <table cellpadding="0" cellspacing="0" border="0" role="presentation" style="width:300px;" dir=”ltr”>
+                                <tr>
+									<td align="left" valign="top">
+									<a href="'.esc_url($permalink).'" style="text-decoration:none; color:#333333;"><span style="font-size:22px; font-weight:bold; line-height: 28px;">'.get_the_title().'</span></a>
+									<div style="line-height:15px; font-size:15px;">&nbsp;</div>
+                    <div style="font-size:16px; line-height:24px; color:#444444; text-align:left;">'.$text.'</div>
+                                            <div style="text-align: right; width: 100%;"><a href="' . esc_url($permalink) . '" target="_blank" style="color: #0073aa; text-decoration: underline; font-size: 16px; font-weight: bold;"><span>'.$read_more.'</span></a></div>
+                                      </td>
+                                      
+                                </tr>
+                          </table>
+                    </div>
+               <!--[if (gte mso 9)|(IE)]>
+               </td>
+               </tr>
+               </table>
+               <![endif]-->
+          </td>
+     </tr>
+  </table>
+';
+		}
+		
+		$output .= '
+			<table>
+				<tr>
+					<td style="width: 600px;">
+						<hr>
+					</td>
+				<tr>
+			</table>';
+	}
+    wp_reset_postdata();
+	
+	return $output;
+}
+
+add_filter('mailpoet_newsletter_shortcode', 'mailpoet_custom_post_grid', 10, 6);
+
+function mailpoet_custom_post_grid($shortcode, $newsletter, $subscriber, $queue, $newsletter_body, $arguments) {
+    if (strpos($shortcode, '[custom:post_grid') !== 0) {
+        return $shortcode;
+    }
+
+    $tags_arg   = isset($arguments['tags']) ? explode(',', $arguments['tags']) : [];
+    $cat_arg    = isset($arguments['categories']) ? explode(',', $arguments['categories']) : [];
+    $post_limit = isset($arguments['limit']) ? intval($arguments['limit']) : 12;
+	$empty      = isset($arguments['empty']) ? esc_html($arguments['empty']) : "";
+    $is_event_query = in_array('events', array_map('trim', $cat_arg));
+
+    $args = ['post_type' => 'post', 'posts_per_page' => $post_limit];
+    if ($is_event_query) {
+        $args['meta_key'] = 'event_start';
+        $args['orderby'] = 'meta_value';
+        $args['order'] = 'ASC';
+    } else {
+        $args['orderby'] = 'date';
+        $args['order'] = 'DESC';
+    }
+
+    if (!empty($tags_arg)) $args['tag_slug__in'] = array_map('trim', $tags_arg);
+    if (!empty($cat_arg)) $args['category_name'] = implode(',', array_map('trim', $cat_arg));
+
+    $query = new WP_Query($args);
+	
+	// Logic: If no posts found, return nothing immediately
+    if (!$query->have_posts()) return $empty;
+    
+    // Use border-collapse: separate to prevent border bleeding
+    $output = '<table width="100%" border="0" cellpadding="0" cellspacing="0" role="presentation" align="center" style="width:100%; max-width:600px; margin:0 auto; border-collapse: separate;">';
+    
+    if ($query->have_posts()) {
+        $count = 0;
+        while ($query->have_posts()) {
+            $query->the_post();
+            
+            if ($count % 2 == 0) {
+                $output .= '<tr>';
+            }
+
+            $permalink = get_permalink();
+            $formatted_date = '';
+            if ($is_event_query) {
+                $event_raw = get_field('event_start');
+                if ($event_raw) {
+                    $timestamp = strtotime($event_raw);
+                    $time_part = (date('i', $timestamp) !== '00') ? date('g:ia', $timestamp) : date('ga', $timestamp);
+                    $formatted_date = date('jS F Y', $timestamp) . ' ' . $time_part;
+                }
+            }
+            
+            $thumbnail = get_the_post_thumbnail_url(get_the_ID(), 'medium') ?: '';
+
+            // Outer TD now has NO border and NO background
+            $output .= '
+            <td width="49%" valign="top" style="width: 49%; padding: 0;">
+                <table width="100%" border="0" cellpadding="0" cellspacing="0" role="presentation" style="background-color: #ffffff; border: 1px solid #eeeeee; border-collapse: collapse; mso-table-lspace:0pt; mso-table-rspace:0pt;">
+                    <tr>
+                        <td valign="top" align="left" style="padding: 0; margin: 0; line-height: 10px; font-size: 10px;">
+                            <a href="' . esc_url($permalink) . '" target="_blank" style="display: block; border: 0;">
+                                <img src="' . esc_url($thumbnail) . '" alt="' . esc_attr(get_the_title()) . '" width="292" border="0" style="display: block; width: 100%; height: auto; border: 0;">
+                            </a>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td valign="top" style="padding: 10px; font-family: Arial, sans-serif; line-height: 1.2; mso-line-height-rule: exactly;">
+                            <a href="' . esc_url($permalink) . '" target="_blank" style="text-decoration: none; color: #333333; display: block; border: 0;">
+                                <span style="font-size: 14px; line-height: 16px; font-weight: bold; color: #333333; text-decoration: none;">' . get_the_title() . '</span>
+                            </a>';
+                            
+                            if ($is_event_query && !empty($formatted_date)) {
+                                $output .= '<div style="line-height: 4px; font-size: 4px;">&nbsp;</div>';
+                                $output .= '<span style="font-size: 11px; color: #777777; line-height: 13px;">' . esc_html($formatted_date) . '</span>';
+                            }
+
+            $output .= '</td>
+                    </tr>
+                </table>
+            </td>';
+
+            // 5px Spacer logic - No background color, no border
+            if ($count % 2 == 0) {
+                $output .= '<td width="5" style="width: 5px; font-size: 1px; line-height: 1px; border:none; background:none;">&nbsp;</td>';
+            }
+
+            $count++;
+
+            if ($count % 2 == 0) {
+                $output .= '</tr>';
+                // Spacer row
+                $output .= '<tr><td colspan="3" height="10" style="height: 10px; line-height: 10px; font-size: 1px; border:none; background:none;">&nbsp;</td></tr>';
+            }
+        }
+        
+        if ($count % 2 != 0) {
+            $output .= '<td width="49%" style="width: 49%;">&nbsp;</td></tr>';
+        }
+        wp_reset_postdata();
+    }
+    $output .= '</table>';
+    return $output;
+}
