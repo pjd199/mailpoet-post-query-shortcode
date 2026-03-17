@@ -2,7 +2,7 @@
 /**
  * Plugin Name: Mailpoet Post Query Shortcode
  * Description: Custom Mailpoet shortcode for inserting posts into email 
- * Version: 0.0.4
+ * Version: 0.0.6
  * Author: Pete Dibdin
  * License: MIT
  * Plugin URI: https://github.com/pjd199/mailpoet-post-query-shortcode
@@ -197,20 +197,20 @@ function mailpoet_custom_post_list($shortcode, $newsletter, $subscriber, $queue,
 		if (!$zigzag || $query->current_post % 2 == 0) {
 			/* Image Left, Text Right */
 			$output .= '
-<table>
+<table width="100%" border="0" cellpadding="0" cellspacing="0" role="presentation" align="center" style="width:100%; max-width:600px; margin:0 auto; border-collapse: separate;">
     <tr>
-        <td style="font-size:0;" align="left" valign="top">
+        <td style="font-size:0;width: 600px;" align="left" valign="top">
 <!--[if (gte mso 9)|(IE)]>
             <table cellpadding="0" cellspacing="0" border="0" role="presentation" style="width: 100%;">
                 <tr>
-                    <td valign="top" style="width: 300px;">
+                    <td style="font-size:0; text-align:center;" align="center" valign="top">
 <![endif]-->
-                        <div style="display:inline-block;vertical-align:top;">
-                            <table cellpadding="0" cellspacing="0" border="0" role="presentation" style="width: 300px;">
+                        <div style="display:inline-block; vertical-align:top; width:100%; max-width:300px;">
+                            <table cellpadding="0" cellspacing="0" border="0" role="presentation" style="width: 100%;">
                                 <tr>
                                     <td align="left" valign="top" style="padding: 0px; margin: 0px;">
                                         <a href="'.esc_url($permalink).'" target="_blank" style="display: block; border: 0; text-decoration: none;">
-                                            <img src="'.esc_url($thumbnail).'" width="3000" alt="" style="height:auto;width:100%;" />
+                                            <img src="'.esc_url($thumbnail).'" width="300" alt="" style="display:block; width:100%; min-width:100%; height:auto;" />
                                         </a>
                                     </td>
                                 </tr>
@@ -220,10 +220,10 @@ function mailpoet_custom_post_list($shortcode, $newsletter, $subscriber, $queue,
                     </td>
                     <td valign="top" style="width:300px;">
 <![endif]-->
-                        <div style="display:inline-block;vertical-align:top;">
-                            <table cellpadding="0" cellspacing="0" border="0" role="presentation" style="width:300px;">
+                        <div style="display:inline-block; vertical-align:top; width:100%; max-width:300px;">
+                            <table cellpadding="0" cellspacing="0" border="0" role="presentation" style="width:100%;">
                                 <tr>
-                                    <td align="left" valign="top" style="padding-left:20px; padding-right:20px">
+                                    <td align="left" valign="top" style="padding:20px">
                                         <a href="'.esc_url($permalink).'" style="text-decoration:none; color:#333333;">
                                             <span style="font-size:22px; font-weight:bold; line-height: 28px;">'.get_the_title().'</span>
                                         </a>';
@@ -249,25 +249,24 @@ function mailpoet_custom_post_list($shortcode, $newsletter, $subscriber, $queue,
 <![endif]-->
         </td>
     </tr>
-</table>
-  ';
+</table>';
 		} else {
 		/* Text Left, Image Right */
  	$output .= '
-<table>
+<table width="100%" border="0" cellpadding="0" cellspacing="0" role="presentation" align="center" style="width:100%; max-width:600px; margin:0 auto; border-collapse: separate;">
     <tr>
         <td style="font-size:0;" align="left" valign="top" dir="rtl">
 <!--[if (gte mso 9)|(IE)]>
             <table cellpadding="0" cellspacing="0" border="0" role="presentation" style="width: 100%;">
                 <tr>
-                    <td valign="top" style="width: 300px;">
+                    <td valign="top" style="width: 300px">
 <![endif]-->
                         <div style="display:inline-block;vertical-align:top;">
                             <table cellpadding="0" cellspacing="0" border="0" role="presentation" style="width: 300px;" dir=”ltr”>
                                 <tr>
-                                    <td align="left" valign="top" style="padding-left: 10px;">
+                                    <td align="left" valign="top" style="padding: 0px;">
                                         <a href="'.esc_url($permalink).'" target="_blank" style="display: block; border: 0; text-decoration: none;">
-                                            <img src="'.esc_url($thumbnail).'" width="290" alt="" style="height:auto;max-width:100%;" />
+                                            <img src="'.esc_url($thumbnail).'" width="300" alt="" style="height:auto;max-width:100%;" />
                                         </a>
                                     </td> 
                                 </tr>
@@ -278,9 +277,9 @@ function mailpoet_custom_post_list($shortcode, $newsletter, $subscriber, $queue,
                     <td valign="top" style="width:300px;">
 <![endif]-->
                         <div style="display:inline-block;vertical-align:top;">
-                            <table cellpadding="0" cellspacing="0" border="0" role="presentation" style="width:300px;" dir=”ltr”>
+                            <table cellpadding="0" cellspacing="0" border="0" role="presentation" style="width:300px" dir=”ltr”>
                                 <tr>
-                                    <td align="left" valign="top">
+                                    <td align="left" valign="top" style="padding-left:20px; padding-right:20px;>
                                         <a href="'.esc_url($permalink).'" style="text-decoration:none; color:#333333;">
                                             <span style="font-size:22px; font-weight:bold; line-height: 28px;">'.get_the_title().'</span>
                                         </a>';
@@ -355,17 +354,13 @@ function mailpoet_custom_post_grid($shortcode, $newsletter, $subscriber, $queue,
     if (!$query->have_posts()) return $empty;
     
     // Use border-collapse: separate to prevent border bleeding
-    $output = '<table width="100%" border="0" cellpadding="0" cellspacing="0" role="presentation" align="center" style="width:100%; max-width:600px; margin:0 auto; border-collapse: separate;">';
+    $output = '
+<table width="100%" border="0" cellpadding="0" cellspacing="0" role="presentation" align="center" style="width:100%; max-width:600px; margin:0 auto; border-collapse: separate;">';
     
     if ($query->have_posts()) {
-        $count = 0;
         while ($query->have_posts()) {
             $query->the_post();
             
-            if ($count % 2 == 0) {
-                $output .= '<tr>';
-            }
-
             $permalink = get_permalink();
             $formatted_date = '';
             if ($is_event_query) {
@@ -379,52 +374,66 @@ function mailpoet_custom_post_grid($shortcode, $newsletter, $subscriber, $queue,
             
             $thumbnail = get_the_post_thumbnail_url(get_the_ID(), 'medium') ?: '';
 
-            // Outer TD now has NO border and NO background
-            $output .= '
-            <td width="49%" valign="top" style="width: 49%; padding: 0;">
-                <table width="100%" border="0" cellpadding="0" cellspacing="0" role="presentation" style="background-color: #ffffff; border: 1px solid #eeeeee; border-collapse: collapse; mso-table-lspace:0pt; mso-table-rspace:0pt;">
-                    <tr>
-                        <td valign="top" align="left" style="padding: 0; margin: 0; line-height: 10px; font-size: 10px;">
-                            <a href="' . esc_url($permalink) . '" target="_blank" style="display: block; border: 0;">
-                                <img src="' . esc_url($thumbnail) . '" alt="' . esc_attr(get_the_title()) . '" width="292" border="0" style="display: block; width: 100%; height: auto; border: 0;">
-                            </a>
-                        </td>
-                    </tr>
-                    <tr>
-                        <td valign="top" style="padding: 10px; font-family: Arial, sans-serif; line-height: 1.2; mso-line-height-rule: exactly;">
-                            <a href="' . esc_url($permalink) . '" target="_blank" style="text-decoration: none; color: #333333; display: block; border: 0;">
-                                <span style="font-size: 14px; line-height: 16px; font-weight: bold; color: #333333; text-decoration: none;">' . get_the_title() . '</span>
-                            </a>';
-                            
-                            if ($is_event_query && !empty($formatted_date)) {
-                                $output .= '<div style="line-height: 4px; font-size: 4px;">&nbsp;</div>';
-                                $output .= '<span style="font-size: 11px; color: #777777; line-height: 13px;">' . esc_html($formatted_date) . '</span>';
-                            }
-
-            $output .= '</td>
-                    </tr>
-                </table>
-            </td>';
-
-            // 5px Spacer logic - No background color, no border
-            if ($count % 2 == 0) {
-                $output .= '<td width="5" style="width: 5px; font-size: 1px; line-height: 1px; border:none; background:none;">&nbsp;</td>';
+            if ($query->current_post % 2 == 0) {
+                $output .= '
+    <tr>';
             }
 
-            $count++;
+            // Outer TD now has NO border and NO background
+            $output .= '
+        <td width="49%" valign="top" style="width: 49%; padding: 0;">
+            <table width="100%" border="0" cellpadding="0" cellspacing="0" role="presentation" style="background-color: #ffffff; border: 1px solid #eeeeee; border-collapse: collapse; mso-table-lspace:0pt; mso-table-rspace:0pt;">
+                <tr>
+                    <td valign="top" align="left" style="padding: 0; margin: 0; line-height: 10px; font-size: 10px;">
+                        <a href="' . esc_url($permalink) . '" target="_blank" style="display: block; border: 0;">
+                            <img src="' . esc_url($thumbnail) . '" alt="' . esc_attr(get_the_title()) . '" width="292" border="0" style="display: block; width: 100%; height: auto; border: 0;">
+                        </a>
+                    </td>
+                </tr>
+                <tr>
+                    <td valign="top" style="padding: 10px; font-family: Arial, sans-serif; line-height: 1.2; mso-line-height-rule: exactly;">
+                        <a href="' . esc_url($permalink) . '" target="_blank" style="text-decoration: none; color: #333333; display: block; border: 0;">
+                            <span style="font-size: 14px; line-height: 16px; font-weight: bold; color: #333333; text-decoration: none;">' . get_the_title() . '</span>
+                        </a>';
+                            
+            if ($is_event_query && !empty($formatted_date)) {
+                $output .= '
+                        <div style="line-height: 4px; font-size: 4px;">&nbsp;</div>
+                        <span style="font-size: 11px; color: #777777; line-height: 13px;">' . esc_html($formatted_date) . '</span>';
+            }
 
-            if ($count % 2 == 0) {
-                $output .= '</tr>';
-                // Spacer row
-                $output .= '<tr><td colspan="3" height="10" style="height: 10px; line-height: 10px; font-size: 1px; border:none; background:none;">&nbsp;</td></tr>';
+            $output .= '
+                    </td>
+                </tr>
+            </table>
+        </td>';
+
+            // Add vertical spacer logic
+            if ($query->current_post % 2 == 0) {
+                $output .= '
+        <td width="5" style="width: 5px; font-size: 1px; line-height: 1px; border:none; background:none;">&nbsp;</td>';
+            }
+
+            if ($query->current_post % 2 == 1) {
+                // Add horizontal spacer
+                $output .= '
+    </tr>
+    <tr>
+        <td colspan="3" height="10" style="height: 10px; line-height: 10px; font-size: 1px; border:none; background:none;">
+            &nbsp;
+        </td>
+    </tr>';
             }
         }
         
-        if ($count % 2 != 0) {
-            $output .= '<td width="49%" style="width: 49%;">&nbsp;</td></tr>';
+        if ($query->current_post % 2 == 0) {
+            $output .= '
+        <td width="49%" style="width: 49%;">&nbsp;</td>
+    </tr>';
         }
         wp_reset_postdata();
     }
-    $output .= '</table>';
+    $output .= '
+</table>';
     return $output;
 }
