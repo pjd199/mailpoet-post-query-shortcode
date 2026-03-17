@@ -2,7 +2,7 @@
 /**
  * Plugin Name: Mailpoet Post Query Shortcode
  * Description: Custom Mailpoet shortcode for inserting posts into email 
- * Version: 0.0.6
+ * Version: 0.0.7
  * Author: Pete Dibdin
  * License: MIT
  * Plugin URI: https://github.com/pjd199/mailpoet-post-query-shortcode
@@ -210,7 +210,7 @@ function mailpoet_custom_post_list($shortcode, $newsletter, $subscriber, $queue,
                                 <tr>
                                     <td align="left" valign="top" style="padding: 0px; margin: 0px;">
                                         <a href="'.esc_url($permalink).'" target="_blank" style="display: block; border: 0; text-decoration: none;">
-                                            <img src="'.esc_url($thumbnail).'" width="300" alt="" style="display:block; width:100%; min-width:100%; height:auto;" />
+                                            <img src="'.esc_url($thumbnail).'" width="300" alt="" style="display:block; width:100%; min-width:100%; height:auto;margin-bottom:20px" />
                                         </a>
                                     </td>
                                 </tr>
@@ -223,7 +223,7 @@ function mailpoet_custom_post_list($shortcode, $newsletter, $subscriber, $queue,
                         <div style="display:inline-block; vertical-align:top; width:100%; max-width:300px;">
                             <table cellpadding="0" cellspacing="0" border="0" role="presentation" style="width:100%;">
                                 <tr>
-                                    <td align="left" valign="top" style="padding:20px">
+                                    <td align="left" valign="top" style="padding-left:20px; padding-right:20px">
                                         <a href="'.esc_url($permalink).'" style="text-decoration:none; color:#333333;">
                                             <span style="font-size:22px; font-weight:bold; line-height: 28px;">'.get_the_title().'</span>
                                         </a>';
@@ -255,18 +255,18 @@ function mailpoet_custom_post_list($shortcode, $newsletter, $subscriber, $queue,
  	$output .= '
 <table width="100%" border="0" cellpadding="0" cellspacing="0" role="presentation" align="center" style="width:100%; max-width:600px; margin:0 auto; border-collapse: separate;">
     <tr>
-        <td style="font-size:0;" align="left" valign="top" dir="rtl">
+        <td style="font-size:0;width: 600px;" align="left" valign="top" dir="rtl">
 <!--[if (gte mso 9)|(IE)]>
             <table cellpadding="0" cellspacing="0" border="0" role="presentation" style="width: 100%;">
                 <tr>
-                    <td valign="top" style="width: 300px">
+                    <td style="font-size:0; text-align:center;" align="center" valign="top">
 <![endif]-->
-                        <div style="display:inline-block;vertical-align:top;">
-                            <table cellpadding="0" cellspacing="0" border="0" role="presentation" style="width: 300px;" dir=”ltr”>
+                        <div style="display:inline-block; vertical-align:top; width:100%; max-width:300px;">
+                            <table cellpadding="0" cellspacing="0" border="0" role="presentation" style="width: 100%;" dir=”ltr”>
                                 <tr>
-                                    <td align="left" valign="top" style="padding: 0px;">
+                                    <td align="left" valign="top" style="padding: 0px; margin: 0px;">
                                         <a href="'.esc_url($permalink).'" target="_blank" style="display: block; border: 0; text-decoration: none;">
-                                            <img src="'.esc_url($thumbnail).'" width="300" alt="" style="height:auto;max-width:100%;" />
+                                            <img src="'.esc_url($thumbnail).'" width="300" alt="" style="display:block; width:100%; min-width:100%; height:auto;" />
                                         </a>
                                     </td> 
                                 </tr>
@@ -276,10 +276,10 @@ function mailpoet_custom_post_list($shortcode, $newsletter, $subscriber, $queue,
                     </td>
                     <td valign="top" style="width:300px;">
 <![endif]-->
-                        <div style="display:inline-block;vertical-align:top;">
-                            <table cellpadding="0" cellspacing="0" border="0" role="presentation" style="width:300px" dir=”ltr”>
+                        <div style="display:inline-block; vertical-align:top; width:100%; max-width:300px;">
+                            <table cellpadding="0" cellspacing="0" border="0" role="presentation" style="width:100%;" dir=”ltr”>
                                 <tr>
-                                    <td align="left" valign="top" style="padding-left:20px; padding-right:20px;>
+                                    <td align="left" valign="top" style="padding-left:20px; padding-right:20px">
                                         <a href="'.esc_url($permalink).'" style="text-decoration:none; color:#333333;">
                                             <span style="font-size:22px; font-weight:bold; line-height: 28px;">'.get_the_title().'</span>
                                         </a>';
