@@ -2,7 +2,7 @@
 /**
  * Plugin Name: Mailpoet Post Query Shortcode
  * Description: Custom Mailpoet shortcode for inserting posts into email 
- * Version: 0.0.7
+ * Version: 0.0.9
  * Author: Pete Dibdin
  * License: MIT
  * Plugin URI: https://github.com/pjd199/mailpoet-post-query-shortcode
@@ -83,14 +83,14 @@ function mailpoet_custom_post_query($shortcode, $newsletter, $subscriber, $queue
                     <tr>
                         <td>
                             <a href="'.esc_url($permalink).'" target="_blank">
-                                <img src="'.esc_url($thumbnail).'" width="600" style="width:100%">
+                                <img src="'.esc_url($thumbnail).'" width="600" style="width:100%;margin-bottom:10px">
                             </a>
                         </td>
                     </tr>';
         }
         $output .= '
                     <tr>
-                        <td style="padding:20px; font-family:Arial, sans-serif">
+                        <td style="padding-left:10px; padding-right:10px; font-family:Arial, sans-serif">
                             <a href="'.esc_url($permalink).'" style="text-decoration:none; color:#333333;">
                                 <span style="font-size:22px; font-weight:bold; line-height: 28px;">'.get_the_title().'</span>
                             </a>';
@@ -210,7 +210,7 @@ function mailpoet_custom_post_list($shortcode, $newsletter, $subscriber, $queue,
                                 <tr>
                                     <td align="left" valign="top" style="padding: 0px; margin: 0px;">
                                         <a href="'.esc_url($permalink).'" target="_blank" style="display: block; border: 0; text-decoration: none;">
-                                            <img src="'.esc_url($thumbnail).'" width="300" alt="" style="display:block; width:100%; min-width:100%; height:auto;margin-bottom:20px" />
+                                            <img src="'.esc_url($thumbnail).'" width="300" alt="" style="display:block; width:100%; min-width:100%; height:auto;margin-bottom:10px" />
                                         </a>
                                     </td>
                                 </tr>
@@ -223,7 +223,7 @@ function mailpoet_custom_post_list($shortcode, $newsletter, $subscriber, $queue,
                         <div style="display:inline-block; vertical-align:top; width:100%; max-width:300px;">
                             <table cellpadding="0" cellspacing="0" border="0" role="presentation" style="width:100%;">
                                 <tr>
-                                    <td align="left" valign="top" style="padding-left:20px; padding-right:20px">
+                                    <td align="left" valign="top" style="padding-left:10px; padding-right:10px">
                                         <a href="'.esc_url($permalink).'" style="text-decoration:none; color:#333333;">
                                             <span style="font-size:22px; font-weight:bold; line-height: 28px;">'.get_the_title().'</span>
                                         </a>';
@@ -266,7 +266,7 @@ function mailpoet_custom_post_list($shortcode, $newsletter, $subscriber, $queue,
                                 <tr>
                                     <td align="left" valign="top" style="padding: 0px; margin: 0px;">
                                         <a href="'.esc_url($permalink).'" target="_blank" style="display: block; border: 0; text-decoration: none;">
-                                            <img src="'.esc_url($thumbnail).'" width="300" alt="" style="display:block; width:100%; min-width:100%; height:auto;" />
+                                            <img src="'.esc_url($thumbnail).'" width="300" alt="" style="display:block; width:100%; min-width:100%; height:auto;margin-bottom:10px" />
                                         </a>
                                     </td> 
                                 </tr>
@@ -279,7 +279,7 @@ function mailpoet_custom_post_list($shortcode, $newsletter, $subscriber, $queue,
                         <div style="display:inline-block; vertical-align:top; width:100%; max-width:300px;">
                             <table cellpadding="0" cellspacing="0" border="0" role="presentation" style="width:100%;" dir=”ltr”>
                                 <tr>
-                                    <td align="left" valign="top" style="padding-left:20px; padding-right:20px">
+                                    <td align="left" valign="top" style="padding-left:10px; padding-right:10px">
                                         <a href="'.esc_url($permalink).'" style="text-decoration:none; color:#333333;">
                                             <span style="font-size:22px; font-weight:bold; line-height: 28px;">'.get_the_title().'</span>
                                         </a>';
@@ -312,7 +312,7 @@ function mailpoet_custom_post_list($shortcode, $newsletter, $subscriber, $queue,
 <table>
     <tr>
         <td style="width: 600px;">
-            <hr>
+            <hr style="border: 0; border-top: 2px solid #eeeeee; margin: 0;">
         </td>
     <tr>
 </table>';
@@ -335,7 +335,7 @@ function mailpoet_custom_post_grid($shortcode, $newsletter, $subscriber, $queue,
 	$empty      = isset($arguments['empty']) ? esc_html($arguments['empty']) : "";
     $is_event_query = isset($arguments['event']) ? filter_var($arguments['event'], FILTER_VALIDATE_BOOLEAN) : false;
 
-    $args = ['post_type' => 'post', 'posts_per_page' => $post_limit];
+    $args = ['post_type' => 'post', 'posts_per_page' => $post_limit, 'post_status' => 'publish'];
     if ($is_event_query) {
         $args['meta_key'] = 'event_start';
         $args['orderby'] = 'meta_value';
